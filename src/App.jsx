@@ -6,7 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppLayout from "./components/layout/AppLayout";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/registerPage";
+import RegisterPage from "./pages/registro";
 import DashboardPage from "./pages/DashboardPage";
 import HistorialPage from "./pages/HistorialPage";
 import ConfiguracionPage from "./pages/ConfiguracionPage";
