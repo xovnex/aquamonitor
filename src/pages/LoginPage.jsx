@@ -2,7 +2,7 @@
 // LoginPage.jsx – Página de autenticación con JWT simulado
 // ============================================================
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Droplets, User, Lock, Eye, EyeOff, Wifi } from "lucide-react";
 
@@ -155,17 +155,6 @@ export default function LoginPage() {
               <span className="font-mono text-aqua-400">admin</span> /{" "}
               <span className="font-mono text-aqua-400">1234</span>
             </p>
-          </div>
-
-          {/* Link a registro */}
-          <div className="mt-3 text-center text-sm">
-            <span className="text-white/40">¿No tienes cuenta? </span>
-            <Link
-              to="/register"
-              className="text-aqua-400 font-semibold hover:text-aqua-300 transition-colors"
-            >
-              Regístrate aquí
-            </Link>
           </div>
         </div>
 
