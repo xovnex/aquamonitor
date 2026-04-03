@@ -2,9 +2,11 @@
 // AuthContext.jsx – Contexto global de autenticación
 // ============================================================
 import { createContext, useContext, useState, useCallback } from "react";
-import { loginUser } from "../services/api";
+import axios from "axios";
 
 const AuthContext = createContext(null);
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -14,25 +16,26 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  /** Inicia sesión y guarda token + datos del usuario */
   const login = useCallback(async (usuario, contrasena) => {
     setLoading(true);
     setError(null);
     try {
-      const { token, user: userData } = await loginUser(usuario, contrasena);
-      localStorage.setItem("aqua_token", token);
-      localStorage.setItem("aqua_user", JSON.stringify(userData));
-      setUser(userData);
+      const { data } = await axios.post(`${BASE_URL}/auth/login`, {
+        usuario,
+        contrasena,
+      });
+      localStorage.setItem("aqua_token", data.token);
+      localStorage.setItem("aqua_user", JSON.stringify(data.user));
+      setUser(data.user);
       return true;
     } catch (err) {
-      setError(err.message || "Error al iniciar sesión");
+      setError(err.response?.data?.detail || "Credenciales incorrectas");
       return false;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /** Cierra sesión y limpia almacenamiento */
   const logout = useCallback(() => {
     localStorage.removeItem("aqua_token");
     localStorage.removeItem("aqua_user");
@@ -48,7 +51,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-/** Hook de acceso al contexto de autenticación */
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
