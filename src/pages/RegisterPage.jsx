@@ -43,29 +43,34 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    // Simulación – reemplazar por llamada real al backend
-    await new Promise((res) => setTimeout(res, 1000));
+    try {
+      const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const res = await fetch(`${BASE_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: form.nombre,
+          email: form.email,
+          usuario: form.usuario,
+          contrasena: form.contrasena,
+        }),
+      });
 
-    // Guarda usuario en localStorage (simulado)
-    const usuarios = JSON.parse(localStorage.getItem("aqua_usuarios") || "[]");
-    const existe = usuarios.find((u) => u.usuario === form.usuario);
-    if (existe) {
-      setError("Ese nombre de usuario ya está en uso");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.detail || "Error al registrarse");
+        return;
+      }
+
+      localStorage.setItem("aqua_token", data.token);
+      localStorage.setItem("aqua_user", JSON.stringify(data.user));
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Error de conexión con el servidor");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    usuarios.push({
-      nombre: form.nombre,
-      email: form.email,
-      usuario: form.usuario,
-      contrasena: form.contrasena,
-    });
-    localStorage.setItem("aqua_usuarios", JSON.stringify(usuarios));
-    setLoading(false);
-
-    // Redirige al login con mensaje de éxito
-    navigate("/login?registered=true");
   };
 
   return (
