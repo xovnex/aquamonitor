@@ -1,5 +1,5 @@
 // ============================================================
-// useWaterData.js – Hook que centraliza la obtención de datos de agua
+// useWaterData.js – Hook que centraliza la obtención de datos
 // ============================================================
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -46,18 +46,15 @@ export const useWaterData = () => {
     }
   }, []);
 
-  // Carga inicial
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
 
-  // Actualización automática cada 30 segundos (simula sensor en tiempo real)
   useEffect(() => {
     const interval = setInterval(fetchAll, 30_000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
-  /** Métricas derivadas calculadas a partir de los datos */
   const metrics = data.hoy
     ? {
         porcentaje: Math.min(
@@ -67,9 +64,7 @@ export const useWaterData = () => {
         excedido: data.hoy.litros > data.hoy.limite,
         ahorro: Math.max(0, data.hoy.limite - data.hoy.litros),
         porPersona: Math.round(data.hoy.litros / (data.hoy.personas || 1)),
-        // Detección de fuga: flujo > 2 L/min durante hora nocturna
         fujaDetectada: data.hoy.flujoActual > 2.5,
-        // Número de duchas equivalentes a lo ahorrado
         duchasAhorradas: Math.floor(
           Math.max(0, data.hoy.limite - data.hoy.litros) / 60,
         ),
@@ -79,27 +74,43 @@ export const useWaterData = () => {
   return { data, loading, error, metrics, lastUpdate, refetch: fetchAll };
 };
 
-/** Hook de configuración persistida en localStorage (sincroniza con API) */
 export const useConfig = () => {
-  const [config, setConfig] = useState(() => {
-    const saved = localStorage.getItem("aqua_config");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          limiteDiario: 200,
-          personas: 3,
-          notificaciones: true,
-          alertaFuga: true,
-        };
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+  const [config, setConfig] = useState({
+    limiteDiario: 200,
+    personas: 3,
+    notificaciones: true,
+    alertaFuga: true,
   });
 
-  const updateConfig = useCallback((updates) => {
-    setConfig((prev) => {
-      const next = { ...prev, ...updates };
-      localStorage.setItem("aqua_config", JSON.stringify(next));
-      return next;
-    });
-  }, []);
+  const updateConfig = useCallback(
+    async (updates) => {
+      const next = { ...config, ...updates };
+      setConfig(next);
+
+      // Guarda en la API real
+      try {
+        const token = localStorage.getItem("aqua_token");
+        await fetch(`${BASE_URL}/configuracion`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            limite_diario: next.limiteDiario,
+            personas: next.personas,
+            notificaciones: next.notificaciones,
+            alerta_fuga: next.alertaFuga,
+          }),
+        });
+      } catch (err) {
+        console.error("Error guardando config:", err);
+      }
+    },
+    [config],
+  );
 
   return { config, updateConfig };
 };
