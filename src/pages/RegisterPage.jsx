@@ -1,5 +1,5 @@
 // ============================================================
-// RegisterPage.jsx – Página de registro de usuario
+// RegisterPage.jsx – Registro con verificación de email
 // ============================================================
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   Mail,
+  Phone,
   ArrowLeft,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ export default function RegisterPage() {
     usuario: "",
     contrasena: "",
     confirmar: "",
+    telefono: "",
   });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,7 @@ export default function RegisterPage() {
           email: form.email,
           usuario: form.usuario,
           contrasena: form.contrasena,
+          telefono: form.telefono || null,
         }),
       });
 
@@ -63,9 +66,8 @@ export default function RegisterPage() {
         return;
       }
 
-      localStorage.setItem("aqua_token", data.token);
-      localStorage.setItem("aqua_user", JSON.stringify(data.user));
-      navigate("/dashboard");
+      // Redirige a verificación con el email
+      navigate(`/verificar?email=${encodeURIComponent(form.email)}`);
     } catch (err) {
       setError("Error de conexión con el servidor");
     } finally {
@@ -78,14 +80,9 @@ export default function RegisterPage() {
       className="min-h-screen flex items-center justify-center relative overflow-hidden bg-grid"
       style={{ background: "#060d1a" }}
     >
-      {/* Orbs decorativos */}
       <div
         className="absolute top-[-10%] right-[-5%] w-96 h-96 rounded-full opacity-20 blur-3xl"
         style={{ background: "radial-gradient(circle, #1eb8f0, transparent)" }}
-      />
-      <div
-        className="absolute bottom-[-10%] left-[-5%] w-80 h-80 rounded-full opacity-15 blur-3xl"
-        style={{ background: "radial-gradient(circle, #0878a8, transparent)" }}
       />
 
       <div className="relative z-10 w-full max-w-sm mx-4 py-8">
@@ -189,6 +186,29 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Teléfono */}
+            <div>
+              <label className="stat-label block mb-1.5">
+                WhatsApp (opcional)
+              </label>
+              <div className="relative">
+                <Phone
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30"
+                />
+                <input
+                  className="input-field pl-10"
+                  name="telefono"
+                  value={form.telefono}
+                  onChange={handleChange}
+                  placeholder="+51987654321"
+                />
+              </div>
+              <p className="text-xs text-white/25 mt-1">
+                Para recibir alertas de consumo
+              </p>
+            </div>
+
             {/* Contraseña */}
             <div>
               <label className="stat-label block mb-1.5">Contraseña</label>
@@ -216,7 +236,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Confirmar contraseña */}
+            {/* Confirmar */}
             <div>
               <label className="stat-label block mb-1.5">
                 Confirmar contraseña

@@ -1,10 +1,10 @@
 // ============================================================
-// LoginPage.jsx – Página de autenticación con JWT simulado
+// LoginPage.jsx – Página de autenticación
 // ============================================================
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Droplets, User, Lock, Eye, EyeOff, Wifi } from "lucide-react";
+import { Droplets, User, Lock, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { login, loading, error } = useAuth();
@@ -26,7 +26,6 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center relative overflow-hidden bg-grid"
       style={{ background: "#060d1a" }}
     >
-      {/* Orbs decorativos */}
       <div
         className="absolute top-[-10%] left-[-5%] w-96 h-96 rounded-full opacity-20 blur-3xl"
         style={{ background: "radial-gradient(circle, #1eb8f0, transparent)" }}
@@ -52,7 +51,7 @@ export default function LoginPage() {
           <p className="text-sm text-white/40 mt-1">Sistema de monitoreo IoT</p>
         </div>
 
-        {/* Card del formulario */}
+        {/* Card */}
         <div
           className="glass-card p-7 animate-fade-up"
           style={{ animationDelay: "150ms" }}
@@ -78,7 +77,6 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Usuario */}
             <div>
               <label className="stat-label block mb-1.5">Usuario</label>
               <div className="relative">
@@ -91,14 +89,13 @@ export default function LoginPage() {
                   name="usuario"
                   value={form.usuario}
                   onChange={handleChange}
-                  placeholder="admin"
+                  placeholder="tuusuario"
                   autoComplete="username"
                   required
                 />
               </div>
             </div>
 
-            {/* Contraseña */}
             <div>
               <label className="stat-label block mb-1.5">Contraseña</label>
               <div className="relative">
@@ -126,10 +123,20 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Olvidé contraseña */}
+            <div className="text-right">
+              <Link
+                to="/recuperar"
+                className="text-xs text-aqua-400 hover:text-aqua-300 transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full mt-2 flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -142,23 +149,8 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo hint */}
-          <div
-            className="mt-5 px-3 py-2.5 rounded-xl text-center"
-            style={{
-              background: "rgba(30,184,240,0.06)",
-              border: "1px solid rgba(30,184,240,0.12)",
-            }}
-          >
-            <p className="text-xs text-white/40">
-              Credenciales de demo:{" "}
-              <span className="font-mono text-aqua-400">admin</span> /{" "}
-              <span className="font-mono text-aqua-400">1234</span>
-            </p>
-          </div>
-
           {/* Link a registro */}
-          <div className="mt-3 text-center text-sm">
+          <div className="mt-4 text-center text-sm">
             <span className="text-white/40">¿No tienes cuenta? </span>
             <Link
               to="/register"
@@ -167,12 +159,6 @@ export default function LoginPage() {
               Regístrate aquí
             </Link>
           </div>
-        </div>
-
-        {/* Estado conexión */}
-        <div className="flex items-center justify-center gap-2 mt-5 text-xs text-white/25">
-          <Wifi size={12} />
-          <span>Sensor ESP32 · Modo simulación activo</span>
         </div>
       </div>
     </div>
