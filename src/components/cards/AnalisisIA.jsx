@@ -63,7 +63,7 @@ export default function AnalisisIA() {
               Análisis inteligente
             </p>
             <p className="text-xs text-white/35 mt-0.5">
-              Powered by OpenAI GPT
+              Powered by Groq LLaMA 3
             </p>
           </div>
         </div>
