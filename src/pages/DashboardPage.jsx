@@ -12,6 +12,7 @@ import GraficaDiaria from "../components/charts/GraficaDiaria";
 import GraficaSemanal from "../components/charts/GraficaSemanal";
 import GraficaCircular from "../components/charts/GraficaCircular";
 import GraficaMensual from "../components/charts/GraficaMensual";
+import AnalisisIA from "../components/cards/AnalisisIA";
 
 export default function DashboardPage() {
   const { data, loading, error, metrics, lastUpdate, refetch } = useWaterData();
@@ -129,6 +130,9 @@ export default function DashboardPage() {
           <GraficaSemanal data={semanal} />
           <GraficaMensual data={mensual} />
         </div>
+
+        {/* Análisis IA */}
+        <AnalisisIA />
 
         {/* Resumen del día */}
         <div className="glass-card p-4">
