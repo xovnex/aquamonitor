@@ -1,6 +1,9 @@
 // ============================================================
 // GraficaDiaria.jsx – Gráfica de área con datos reales de la API
 // ============================================================
+// ============================================================
+// GraficaDiaria.jsx – Gráfica de área con datos reales por hora
+// ============================================================
 import { useState, useEffect } from "react";
 import {
   ResponsiveContainer,
@@ -13,7 +16,7 @@ import {
 } from "recharts";
 
 const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length || payload[0].value === 0) return null;
   return (
     <div className="glass-card px-3 py-2 text-xs">
       <p className="text-white/50 mb-1">{label}</p>
@@ -30,27 +33,22 @@ export default function GraficaDiaria() {
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
     const token = localStorage.getItem("aqua_token");
 
-    // Por ahora genera datos de las horas hasta la hora actual
+    // Genera 24 horas todas en 0
     const horas = Array.from({ length: 24 }, (_, i) => ({
       hora: `${String(i).padStart(2, "0")}:00`,
       litros: 0,
     }));
 
-    // Obtiene el consumo de hoy y lo distribuye
     fetch(`${BASE_URL}/consumo/hoy`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
       .then((d) => {
         const horaActual = new Date().getHours();
-        // Distribuye los litros de hoy entre las horas transcurridas
-        const litrosPorHora = horaActual > 0 ? d.litros / horaActual : 0;
+        // Solo pone el valor en la hora actual, el resto queda en 0
         const dataConLitros = horas.map((h, i) => ({
           ...h,
-          litros:
-            i < horaActual
-              ? Math.round(litrosPorHora + (Math.random() * 4 - 2))
-              : 0,
+          litros: i === horaActual && d.litros > 0 ? d.litros : 0,
         }));
         setData(dataConLitros);
       })
@@ -98,6 +96,8 @@ export default function GraficaDiaria() {
               tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
               axisLine={false}
               tickLine={false}
+              allowDecimals={false}
+              domain={[0, "auto"]}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area
