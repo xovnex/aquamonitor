@@ -1,6 +1,7 @@
 // ============================================================
 // Sidebar.jsx – Navegación lateral (desktop estático, móvil drawer)
 // ============================================================
+import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -19,6 +20,71 @@ const NAV_ITEMS = [
   { path: "/historial", label: "Historial", Icon: History },
   { path: "/configuracion", label: "Configuración", Icon: Settings },
 ];
+
+// ── Componente de estado del sensor ──
+function SensorStatus() {
+  const [enLinea, setEnLinea] = useState(false);
+
+  useEffect(() => {
+    const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    const token = localStorage.getItem("aqua_token");
+
+    const verificar = () => {
+      fetch(`${BASE_URL}/consumo/hoy`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (!d.sensor?.ultimaActualizacion) {
+            setEnLinea(false);
+            return;
+          }
+          const ultima = new Date(d.sensor.ultimaActualizacion);
+          const diff = (Date.now() - ultima.getTime()) / 1000;
+          setEnLinea(diff < 120);
+        })
+        .catch(() => setEnLinea(false));
+    };
+
+    verificar();
+    const interval = setInterval(verificar, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div
+      className="mx-3 my-3 px-3 py-2.5 rounded-xl"
+      style={{
+        background: enLinea ? "rgba(16,185,129,0.08)" : "rgba(239,68,68,0.08)",
+        border: `1px solid ${enLinea ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)"}`,
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{
+            background: enLinea ? "#34d399" : "#f87171",
+            boxShadow: enLinea ? "0 0 6px #34d399" : "0 0 6px #f87171",
+            animation: enLinea ? "pulseDot 1.5s ease-in-out infinite" : "none",
+          }}
+        />
+        <Wifi size={12} color={enLinea ? "#34d399" : "#f87171"} />
+        <span
+          className="text-xs font-medium"
+          style={{ color: enLinea ? "#34d399" : "#f87171" }}
+        >
+          {enLinea ? "Sensor en línea" : "Sensor apagado"}
+        </span>
+      </div>
+      <p
+        className="text-xs mt-0.5 font-mono"
+        style={{ color: "rgba(255,255,255,0.3)" }}
+      >
+        ESP32-001
+      </p>
+    </div>
+  );
+}
 
 export default function Sidebar({ onClose }) {
   const { logout, user } = useAuth();
@@ -78,31 +144,8 @@ export default function Sidebar({ onClose }) {
         </button>
       </div>
 
-      {/* ── Estado del sensor ── */}
-      <div
-        className="mx-3 my-3 px-3 py-2.5 rounded-xl"
-        style={{
-          background: "rgba(16,185,129,0.08)",
-          border: "1px solid rgba(16,185,129,0.15)",
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse-dot"
-            style={{ background: "#34d399", boxShadow: "0 0 6px #34d399" }}
-          />
-          <Wifi size={12} color="#34d399" />
-          <span className="text-xs font-medium" style={{ color: "#34d399" }}>
-            Sensor en línea
-          </span>
-        </div>
-        <p
-          className="text-xs mt-0.5 font-mono"
-          style={{ color: "rgba(255,255,255,0.3)" }}
-        >
-          ESP32-001
-        </p>
-      </div>
+      {/* ── Estado del sensor (dinámico) ── */}
+      <SensorStatus />
 
       {/* ── Navegación ── */}
       <nav className="flex-1 px-3 py-1 space-y-1 overflow-y-auto">

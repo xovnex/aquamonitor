@@ -1,14 +1,7 @@
 // ============================================================
 // DashboardPage.jsx – Página principal del dashboard
 // ============================================================
-import {
-  Droplets,
-  Gauge,
-  TrendingDown,
-  Users,
-  Activity,
-  Zap,
-} from "lucide-react";
+import { Droplets, Gauge, TrendingDown, Users, Activity } from "lucide-react";
 import { useWaterData } from "../hooks/useWaterData";
 import Header from "../components/layout/Header";
 import StatCard from "../components/cards/StatCard";
@@ -24,7 +17,6 @@ export default function DashboardPage() {
   const { data, loading, error, metrics, lastUpdate, refetch } = useWaterData();
   const { hoy, semanal, mensual } = data;
 
-  // Determina qué tipo de alerta mostrar
   const alertType = metrics?.fujaDetectada
     ? "leak"
     : metrics?.excedido
@@ -37,7 +29,7 @@ export default function DashboardPage() {
     ok: `Llevas ${hoy?.litros ?? 0} L de ${hoy?.limite ?? 200} L disponibles. ¡Vas excelente!`,
     warning: `Ya consumiste el ${metrics?.porcentaje ?? 0}% de tu límite diario. Ve despacio.`,
     exceeded: `Superaste tu límite por ${(hoy?.litros ?? 0) - (hoy?.limite ?? 200)} L. Reduce el consumo.`,
-    leak: "Flujo constante detectado a las 3 AM. Verifica tus cañerías.",
+    leak: "Flujo constante detectado. Verifica tus cañerías.",
   };
 
   if (loading && !hoy) {
@@ -138,25 +130,39 @@ export default function DashboardPage() {
           <GraficaMensual data={mensual} />
         </div>
 
-        {/* Sensor status */}
+        {/* Resumen del día */}
         <div className="glass-card p-4">
           <div className="flex items-center gap-3 flex-wrap">
             <Activity size={14} className="text-aqua-400" />
             <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">
-              Estado del sensor
+              Resumen del día
             </span>
             <div className="flex items-center gap-4 ml-auto flex-wrap">
               {[
-                { label: "ID", value: hoy?.sensor?.id ?? "ESP32-001" },
-                { label: "Estado", value: "● En línea", color: "#34d399" },
-                { label: "Batería", value: `${hoy?.sensor?.bateria ?? 87}%` },
                 {
-                  label: "Flujo actual",
-                  value: `${hoy?.flujoActual ?? 0.8} L/min`,
+                  label: "Total hoy",
+                  value: `${hoy?.litros ?? 0} L`,
+                  color: metrics?.excedido ? "#f87171" : "#48d7ff",
                 },
                 {
-                  label: "Temp. agua",
-                  value: `${hoy?.temperaturaAgua ?? 18}°C`,
+                  label: "Límite",
+                  value: `${hoy?.limite ?? 200} L`,
+                  color: "rgba(255,255,255,0.7)",
+                },
+                {
+                  label: "Ahorro",
+                  value: `${metrics?.ahorro ?? 0} L`,
+                  color: "#34d399",
+                },
+                {
+                  label: "Por persona",
+                  value: `${metrics?.porPersona ?? 0} L`,
+                  color: "rgba(255,255,255,0.7)",
+                },
+                {
+                  label: "Duchas ahorradas",
+                  value: `${metrics?.duchasAhorradas ?? 0}`,
+                  color: "#a78bfa",
                 },
               ].map(({ label, value, color }) => (
                 <div key={label} className="text-center">
