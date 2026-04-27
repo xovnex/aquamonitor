@@ -51,7 +51,7 @@ export const useWaterData = () => {
   }, [fetchAll]);
 
   useEffect(() => {
-    const interval = setInterval(fetchAll, 30_000);
+    const interval = setInterval(fetchAll, 10_000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
