@@ -1,14 +1,16 @@
 // ============================================================
-// AnalisisIA.jsx – Análisis inteligente con OpenAI
+// AnalisisIA.jsx – Análisis inteligente + Chat contextual
 // ============================================================
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Sparkles,
   Brain,
   TrendingUp,
-  TrendingDown,
   AlertTriangle,
   RefreshCw,
+  Send,
+  X,
+  MessageCircle,
 } from "lucide-react";
 
 export default function AnalisisIA() {
@@ -17,11 +19,24 @@ export default function AnalisisIA() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Chat
+  const [chatAbierto, setChatAbierto] = useState(false);
+  const [mensajes, setMensajes] = useState([]);
+  const [pregunta, setPregunta] = useState("");
+  const [loadingChat, setLoadingChat] = useState(false);
+  const chatEndRef = useRef(null);
+
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [mensajes, loadingChat]);
 
   const handleAnalizar = async () => {
     setLoading(true);
     setError(null);
+    setChatAbierto(false);
+    setMensajes([]);
     try {
       const token = localStorage.getItem("aqua_token");
       const res = await fetch(`${BASE_URL}/analisis/semanal`, {
@@ -38,6 +53,69 @@ export default function AnalisisIA() {
     }
   };
 
+  const abrirChat = () => {
+    setChatAbierto(true);
+    if (mensajes.length === 0) {
+      setMensajes([
+        {
+          tipo: "ia",
+          texto:
+            "¡Hola! Ya analicé tu consumo semanal. ¿Tienes alguna pregunta sobre tus datos o cómo mejorar?",
+        },
+      ]);
+    }
+  };
+
+  const enviarPregunta = async (textoPregunta) => {
+    const texto = (textoPregunta ?? pregunta).trim();
+    if (!texto || loadingChat) return;
+
+    const nuevos = [...mensajes, { tipo: "usuario", texto }];
+    setMensajes(nuevos);
+    setPregunta("");
+    setLoadingChat(true);
+
+    try {
+      const token = localStorage.getItem("aqua_token");
+      const res = await fetch(`${BASE_URL}/analisis/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          pregunta: texto,
+          contexto: datos || {},
+        }),
+      });
+      const data = await res.json();
+      setMensajes([...nuevos, { tipo: "ia", texto: data.respuesta }]);
+    } catch {
+      setMensajes([
+        ...nuevos,
+        {
+          tipo: "ia",
+          texto: "Error al conectar. Intenta de nuevo.",
+        },
+      ]);
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      enviarPregunta();
+    }
+  };
+
+  const SUGERENCIAS = [
+    "¿Cómo puedo reducir mi consumo?",
+    "¿Por qué gasté más ese día?",
+    "¿Mi consumo es normal?",
+  ];
+
   return (
     <div
       className="glass-card p-6 animate-fade-up"
@@ -46,7 +124,7 @@ export default function AnalisisIA() {
         boxShadow: "0 0 30px rgba(168,85,247,0.08)",
       }}
     >
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <div
@@ -84,7 +162,7 @@ export default function AnalisisIA() {
         )}
       </div>
 
-      {/* Estado inicial — sin analizar */}
+      {/* ── Estado inicial ── */}
       {!analisis && !loading && !error && (
         <div className="text-center py-6">
           <div
@@ -116,7 +194,7 @@ export default function AnalisisIA() {
         </div>
       )}
 
-      {/* Loading */}
+      {/* ── Loading ── */}
       {loading && (
         <div className="text-center py-8">
           <div className="relative w-16 h-16 mx-auto mb-4">
@@ -138,7 +216,7 @@ export default function AnalisisIA() {
         </div>
       )}
 
-      {/* Error */}
+      {/* ── Error ── */}
       {error && !loading && (
         <div
           className="flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
@@ -154,7 +232,7 @@ export default function AnalisisIA() {
         </div>
       )}
 
-      {/* Resultado */}
+      {/* ── Resultado ── */}
       {analisis && datos && !loading && (
         <div className="space-y-4">
           {/* Mini stats */}
@@ -180,10 +258,10 @@ export default function AnalisisIA() {
               {
                 label: "Días excedidos",
                 value: datos.dias_excedidos,
-                sub: `de 7 días`,
+                sub: "de 7 días",
                 color: datos.dias_excedidos > 0 ? "#f87171" : "#34d399",
               },
-            ].map(({ label, value, sub, color, Icon }) => (
+            ].map(({ label, value, sub, color }) => (
               <div
                 key={label}
                 className="px-3 py-2.5 rounded-xl text-center"
@@ -201,15 +279,14 @@ export default function AnalisisIA() {
             ))}
           </div>
 
-          {/* Análisis de la IA */}
+          {/* Texto del análisis IA */}
           <div
-            className="px-5 py-4 rounded-xl relative overflow-hidden"
+            className="px-5 py-4 rounded-xl"
             style={{
               background: "rgba(168,85,247,0.08)",
               border: "1px solid rgba(168,85,247,0.2)",
             }}
           >
-            {/* Icono decorativo */}
             <div className="flex items-start gap-3">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -230,6 +307,167 @@ export default function AnalisisIA() {
               </div>
             </div>
           </div>
+
+          {/* ── CHAT CONTEXTUAL ── */}
+          {!chatAbierto ? (
+            <button
+              onClick={abrirChat}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={{
+                background: "rgba(168,85,247,0.07)",
+                color: "#c084fc",
+                border: "1px solid rgba(168,85,247,0.2)",
+              }}
+            >
+              <MessageCircle size={15} />
+              Preguntar sobre mi análisis
+            </button>
+          ) : (
+            <div
+              className="rounded-xl overflow-hidden"
+              style={{
+                border: "1px solid rgba(168,85,247,0.2)",
+                background: "rgba(168,85,247,0.05)",
+              }}
+            >
+              {/* Chat header */}
+              <div
+                className="flex items-center justify-between px-4 py-2.5"
+                style={{ borderBottom: "1px solid rgba(168,85,247,0.15)" }}
+              >
+                <div className="flex items-center gap-2">
+                  <MessageCircle size={13} style={{ color: "#c084fc" }} />
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: "#c084fc" }}
+                  >
+                    Chat de análisis
+                  </span>
+                </div>
+                <button
+                  onClick={() => setChatAbierto(false)}
+                  className="text-white/30 hover:text-white/60 transition-colors"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+
+              {/* Mensajes */}
+              <div
+                className="px-4 py-3 flex flex-col gap-3"
+                style={{ maxHeight: 280, overflowY: "auto" }}
+              >
+                {mensajes.map((m, i) => (
+                  <div
+                    key={i}
+                    className={`flex gap-2 ${
+                      m.tipo === "usuario" ? "justify-end" : "items-start"
+                    }`}
+                  >
+                    {m.tipo === "ia" && (
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ background: "rgba(168,85,247,0.3)" }}
+                      >
+                        <Sparkles size={11} style={{ color: "#c084fc" }} />
+                      </div>
+                    )}
+                    <div
+                      className="px-3 py-2 rounded-xl text-xs leading-relaxed"
+                      style={
+                        m.tipo === "ia"
+                          ? {
+                              background: "rgba(255,255,255,0.06)",
+                              color: "rgba(255,255,255,0.75)",
+                              maxWidth: "88%",
+                              borderRadius: "4px 12px 12px 12px",
+                            }
+                          : {
+                              background: "rgba(168,85,247,0.3)",
+                              color: "rgba(255,255,255,0.9)",
+                              maxWidth: "80%",
+                              borderRadius: "12px 4px 12px 12px",
+                            }
+                      }
+                    >
+                      {m.texto}
+                    </div>
+                  </div>
+                ))}
+
+                {loadingChat && (
+                  <div className="flex gap-2 items-start">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: "rgba(168,85,247,0.3)" }}
+                    >
+                      <Sparkles size={11} style={{ color: "#c084fc" }} />
+                    </div>
+                    <div
+                      className="px-3 py-2 rounded-xl text-xs"
+                      style={{
+                        background: "rgba(255,255,255,0.06)",
+                        color: "#c084fc",
+                        borderRadius: "4px 12px 12px 12px",
+                        letterSpacing: 3,
+                      }}
+                    >
+                      ···
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Sugerencias rápidas — solo al inicio */}
+              {mensajes.length <= 1 && (
+                <div className="flex flex-wrap gap-2 px-4 pb-3">
+                  {SUGERENCIAS.map((sg) => (
+                    <button
+                      key={sg}
+                      onClick={() => enviarPregunta(sg)}
+                      className="text-xs px-3 py-1.5 rounded-full transition-all"
+                      style={{
+                        background: "transparent",
+                        border: "1px solid rgba(168,85,247,0.35)",
+                        color: "#c084fc",
+                      }}
+                    >
+                      {sg}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Input */}
+              <div className="flex gap-2 px-4 pb-4">
+                <input
+                  className="flex-1 rounded-xl px-3 py-2 text-xs text-white/80 outline-none"
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(168,85,247,0.2)",
+                  }}
+                  placeholder="Escribe tu pregunta sobre el análisis..."
+                  value={pregunta}
+                  onChange={(e) => setPregunta(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button
+                  onClick={() => enviarPregunta()}
+                  disabled={!pregunta.trim() || loadingChat}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
+                  style={{
+                    background: pregunta.trim()
+                      ? "rgba(168,85,247,0.4)"
+                      : "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(168,85,247,0.3)",
+                  }}
+                >
+                  <Send size={13} style={{ color: "#c084fc" }} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Botón volver a analizar */}
           <button
