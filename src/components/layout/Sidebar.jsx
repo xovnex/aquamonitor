@@ -38,17 +38,11 @@ function SensorStatus() {
           return r.json();
         })
         .then((d) => {
-          // Si la API responde con datos válidos (litros definido), el sensor está activo
-          if (d && typeof d.litros === "number") {
-            // Si el backend incluye ultimaActualizacion, verificamos que sea reciente
-            if (d.sensor?.ultimaActualizacion) {
-              const ultima = new Date(d.sensor.ultimaActualizacion);
-              const diff = (Date.now() - ultima.getTime()) / 1000;
-              setEnLinea(diff < 300); // 5 minutos de margen
-            } else {
-              // Sin timestamp: si hay datos hoy, consideramos sensor activo
-              setEnLinea(d.litros >= 0);
-            }
+          if (d?.sensor?.ultimaLectura) {
+            const ultima = new Date(d.sensor.ultimaLectura);
+            const diffSeg = (Date.now() - ultima.getTime()) / 1000;
+            // Verde si el sensor envió datos en los últimos 30 segundos
+            setEnLinea(diffSeg < 30);
           } else {
             setEnLinea(false);
           }

@@ -56,7 +56,7 @@ export default function ImpactoAmbiental({ ahorro = 0 }) {
             }}
           >
             <p className="text-2xl font-bold font-mono text-emerald-400">
-              {ahorro} L
+              {Number(ahorro).toFixed(2)} L
             </p>
             <p className="text-xs text-white/40 mt-0.5">
               ahorro respecto al límite

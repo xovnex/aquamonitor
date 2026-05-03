@@ -9,6 +9,7 @@ export default function Header({
   onRefresh,
   loading,
   alertCount = 0,
+  onBellClick,
 }) {
   const formatTime = (date) =>
     date?.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
@@ -36,7 +37,10 @@ export default function Header({
 
       <div className="flex items-center gap-3">
         {/* Notificaciones */}
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl glass-card text-white/50 hover:text-white transition-colors">
+        <button
+          onClick={onBellClick}
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl glass-card text-white/50 hover:text-white transition-colors"
+        >
           <Bell size={16} />
           {alertCount > 0 && (
             <span

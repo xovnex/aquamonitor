@@ -3,6 +3,7 @@
 // ============================================================
 import { Droplets, Gauge, TrendingDown, Users, Activity } from "lucide-react";
 import { useWaterData } from "../hooks/useWaterData";
+import { useState } from "react";
 import Header from "../components/layout/Header";
 import StatCard from "../components/cards/StatCard";
 import WaterGauge from "../components/cards/WaterGauge";
@@ -17,6 +18,7 @@ import AnalisisIA from "../components/cards/AnalisisIA";
 export default function DashboardPage() {
   const { data, loading, error, metrics, lastUpdate, refetch } = useWaterData();
   const { hoy, semanal, mensual } = data;
+  const [alertHidden, setAlertHidden] = useState(false);
 
   const alertType = metrics?.fujaDetectada
     ? "leak"
@@ -27,9 +29,9 @@ export default function DashboardPage() {
         : "ok";
 
   const alertMessages = {
-    ok: `Llevas ${hoy?.litros ?? 0} L de ${hoy?.limite ?? 200} L disponibles. ¡Vas excelente!`,
+    ok: `Llevas ${Number(hoy?.litros ?? 0).toFixed(2)} L de ${hoy?.limite ?? 200} L disponibles. ¡Vas excelente!`,
     warning: `Ya consumiste el ${metrics?.porcentaje ?? 0}% de tu límite diario. Ve despacio.`,
-    exceeded: `Superaste tu límite por ${(hoy?.litros ?? 0) - (hoy?.limite ?? 200)} L. Reduce el consumo.`,
+    exceeded: `Superaste tu límite por ${Number((hoy?.litros ?? 0) - (hoy?.limite ?? 200)).toFixed(2)} L. Reduce el consumo.`,
     leak: "Flujo constante detectado. Verifica tus cañerías.",
   };
 
@@ -52,17 +54,23 @@ export default function DashboardPage() {
         onRefresh={refetch}
         loading={loading}
         alertCount={alertType !== "ok" ? 1 : 0}
+        onBellClick={() => setAlertHidden((h) => !h)}
       />
 
       <div className="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
         {/* Alertas */}
-        <AlertBanner type={alertType} message={alertMessages[alertType]} />
+        <AlertBanner
+          type={alertType}
+          message={alertMessages[alertType]}
+          hidden={alertHidden}
+          onDismiss={() => setAlertHidden(true)}
+        />
 
         {/* KPIs superiores */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="Consumo hoy"
-            value={hoy?.litros ?? "—"}
+            value={Number(hoy?.litros ?? 0).toFixed(2)}
             unit="litros"
             Icon={Droplets}
             color={metrics?.excedido ? "red" : "aqua"}
@@ -85,7 +93,7 @@ export default function DashboardPage() {
           />
           <StatCard
             label="Ahorro del día"
-            value={metrics?.ahorro ?? 0}
+            value={Number(metrics?.ahorro ?? 0).toFixed(2)}
             unit="litros"
             Icon={TrendingDown}
             color="green"
@@ -98,7 +106,7 @@ export default function DashboardPage() {
           />
           <StatCard
             label="Por persona"
-            value={metrics?.porPersona ?? "—"}
+            value={Number(metrics?.porPersona ?? 0).toFixed(2)}
             unit="L/pers"
             Icon={Users}
             color="aqua"
@@ -145,7 +153,7 @@ export default function DashboardPage() {
               {[
                 {
                   label: "Total hoy",
-                  value: `${hoy?.litros ?? 0} L`,
+                  value: `${Number(hoy?.litros ?? 0).toFixed(2)} L`,
                   color: metrics?.excedido ? "#f87171" : "#48d7ff",
                 },
                 {
@@ -155,12 +163,12 @@ export default function DashboardPage() {
                 },
                 {
                   label: "Ahorro",
-                  value: `${metrics?.ahorro ?? 0} L`,
+                  value: `${Number(metrics?.ahorro ?? 0).toFixed(2)} L`,
                   color: "#34d399",
                 },
                 {
                   label: "Por persona",
-                  value: `${metrics?.porPersona ?? 0} L`,
+                  value: `${Number(metrics?.porPersona ?? 0).toFixed(2)} L`,
                   color: "rgba(255,255,255,0.7)",
                 },
                 {

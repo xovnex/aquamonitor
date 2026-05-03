@@ -39,8 +39,9 @@ export default function AlertBanner({
   type = "ok",
   message,
   dismissible = true,
+  hidden = false,
+  onDismiss,
 }) {
-  const [hidden, setHidden] = useState(false);
   if (hidden) return null;
 
   const { Icon, bg, border, color, title } = ALERT_TYPES[type];
@@ -59,7 +60,7 @@ export default function AlertBanner({
       </div>
       {dismissible && (
         <button
-          onClick={() => setHidden(true)}
+          onClick={onDismiss}
           className="text-white/30 hover:text-white/70 transition-colors flex-shrink-0"
         >
           <X size={14} />
