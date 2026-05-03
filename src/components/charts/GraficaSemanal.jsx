@@ -53,21 +53,9 @@ const CustomBar = (props) => {
   );
 };
 
-// Orden de días de la semana (Lun=0 … Dom=6)
-const DAY_ORDER = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
-// Índice del día actual en escala Lun-Dom
-function todayDayIndex() {
-  return (new Date().getDay() + 6) % 7; // JS: Dom=0 → convertimos a Dom=6
-}
-
 export default function GraficaSemanal({ data = [] }) {
-  // Filtra días futuros (ej: si hoy es Sáb, oculta Dom)
-  const todayIdx = todayDayIndex();
-  const filteredData = data.filter((d) => DAY_ORDER.indexOf(d.dia) <= todayIdx);
-
   // Dominio del eje Y: mínimo 250 para que el límite de 200 L siempre se vea
-  const maxLitros = Math.max(250, ...filteredData.map((d) => d.litros || 0));
+  const maxLitros = Math.max(250, ...data.map((d) => d.litros || 0));
 
   return (
     <div className="glass-card p-5">
@@ -96,7 +84,7 @@ export default function GraficaSemanal({ data = [] }) {
 
       <ResponsiveContainer width="100%" height={200}>
         <BarChart
-          data={filteredData}
+          data={data}
           margin={{ top: 5, right: 5, bottom: 0, left: -20 }}
           barSize={28}
         >
@@ -129,7 +117,7 @@ export default function GraficaSemanal({ data = [] }) {
             }}
           />
           <Bar dataKey="litros" shape={<CustomBar />} radius={[6, 6, 0, 0]}>
-            {filteredData.map((entry, idx) => (
+            {data.map((entry, idx) => (
               <Cell
                 key={idx}
                 fill={entry.litros > entry.limite ? "#ef4444" : "#1eb8f0"}
