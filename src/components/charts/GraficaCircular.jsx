@@ -10,7 +10,9 @@ const CustomTooltip = ({ active, payload }) => {
       <p className="font-bold" style={{ color: payload[0].payload.color }}>
         {payload[0].name}
       </p>
-      <p className="font-mono text-white">{payload[0].value} L</p>
+      <p className="font-mono text-white">
+        {Number(payload[0].value).toFixed(2)} L
+      </p>
     </div>
   );
 };
@@ -120,7 +122,9 @@ export default function GraficaCircular({ litros = 0, limite = 200 }) {
             />
             <span className="text-white/50">
               {d.name} —{" "}
-              <span className="font-mono text-white/70">{d.value}L</span>
+              <span className="font-mono text-white/70">
+                {Number(d.value).toFixed(2)}L
+              </span>
             </span>
           </div>
         ))}

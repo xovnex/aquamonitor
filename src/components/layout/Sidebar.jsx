@@ -38,10 +38,11 @@ function SensorStatus() {
           return r.json();
         })
         .then((d) => {
-          if (d?.sensor?.ultimaLectura) {
+          // Verde solo si hay agua fluyendo en este momento (flujoActual > 0)
+          // y el dato es reciente (dentro de los últimos 30 segundos)
+          if (d?.sensor?.ultimaLectura && d?.flujoActual > 0) {
             const ultima = new Date(d.sensor.ultimaLectura);
             const diffSeg = (Date.now() - ultima.getTime()) / 1000;
-            // Verde si el sensor envió datos en los últimos 30 segundos
             setEnLinea(diffSeg < 30);
           } else {
             setEnLinea(false);
