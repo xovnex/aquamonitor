@@ -97,7 +97,8 @@ export default function GraficaDiaria() {
               axisLine={false}
               tickLine={false}
               allowDecimals={false}
-              domain={[0, "auto"]}
+              domain={[0, 25]}
+              ticks={[0, 5, 10, 15, 20, 25]}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area
