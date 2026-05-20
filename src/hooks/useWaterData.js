@@ -9,6 +9,23 @@ import {
   getHistorial,
 } from "../services/api";
 
+const DEFAULT_COSTO_POR_LITRO = 0.005;
+
+const resolveCostoPorLitro = (hoy) =>
+  Number(
+    hoy?.costoPorLitro ??
+      hoy?.costo_por_litro ??
+      DEFAULT_COSTO_POR_LITRO,
+  ) || DEFAULT_COSTO_POR_LITRO;
+
+const resolveCostoHoy = (hoy, costoPorLitro) => {
+  const fromApi = hoy?.costoEstimado ?? hoy?.costo_estimado;
+  if (fromApi != null && !Number.isNaN(Number(fromApi))) {
+    return Number(fromApi);
+  }
+  return Number(((hoy?.litros ?? 0) * costoPorLitro).toFixed(2));
+};
+
 export const useWaterData = () => {
   const [data, setData] = useState({
     hoy: null,
@@ -56,19 +73,26 @@ export const useWaterData = () => {
   }, [fetchAll]);
 
   const metrics = data.hoy
-    ? {
-        porcentaje: Math.min(
-          100,
-          Math.round((data.hoy.litros / data.hoy.limite) * 100),
-        ),
-        excedido: data.hoy.litros > data.hoy.limite,
-        ahorro: Math.max(0, data.hoy.limite - data.hoy.litros),
-        porPersona: Math.round(data.hoy.litros / (data.hoy.personas || 1)),
-        fujaDetectada: data.hoy.flujoActual > 10,
-        duchasAhorradas: Math.floor(
-          Math.max(0, data.hoy.limite - data.hoy.litros) / 60,
-        ),
-      }
+    ? (() => {
+        const costoPorLitro = resolveCostoPorLitro(data.hoy);
+        const costoHoy = resolveCostoHoy(data.hoy, costoPorLitro);
+        const litros = data.hoy.litros ?? 0;
+        const limite = data.hoy.limite ?? 200;
+
+        return {
+          porcentaje: Math.min(100, Math.round((litros / limite) * 100)),
+          excedido: litros > limite,
+          ahorro: Math.max(0, limite - litros),
+          porPersona: Math.round(litros / (data.hoy.personas || 1)),
+          fujaDetectada: data.hoy.flujoActual > 10,
+          duchasAhorradas: Math.floor(Math.max(0, limite - litros) / 60),
+          costoPorLitro,
+          costoHoy,
+          ahorroSoles: Number(
+            (Math.max(0, limite - litros) * costoPorLitro).toFixed(2),
+          ),
+        };
+      })()
     : null;
 
   return { data, loading, error, metrics, lastUpdate, refetch: fetchAll };
@@ -80,6 +104,7 @@ export const useConfig = () => {
   const [config, setConfig] = useState({
     limiteDiario: 200,
     personas: 3,
+    costoPorLitro: DEFAULT_COSTO_POR_LITRO,
     notificaciones: true,
     alertaFuga: true,
   });
@@ -89,7 +114,6 @@ export const useConfig = () => {
       const next = { ...config, ...updates };
       setConfig(next);
 
-      // Guarda en la API real
       try {
         const token = localStorage.getItem("aqua_token");
         await fetch(`${BASE_URL}/configuracion`, {
@@ -103,6 +127,7 @@ export const useConfig = () => {
             personas: next.personas,
             notificaciones: next.notificaciones,
             alerta_fuga: next.alertaFuga,
+            costo_por_litro: next.costoPorLitro,
           }),
         });
       } catch (err) {

@@ -9,12 +9,16 @@ const fmt = (d) => d.toISOString().split("T")[0];
 /** Genera un valor aleatorio entre min y max */
 const rand = (min, max) => Math.round(Math.random() * (max - min) + min);
 
+const COSTO_POR_LITRO_MOCK = 0.005;
+
 /** Consumo del día actual en litros */
 export const mockConsumoHoy = {
   fecha: fmt(hoy),
   litros: 142,
   limite: 200,
   personas: 3,
+  costoPorLitro: COSTO_POR_LITRO_MOCK,
+  costoEstimado: Number((142 * COSTO_POR_LITRO_MOCK).toFixed(2)),
   flujoActual: 0.8, // litros/min – detectado por sensor de flujo
   temperaturaAgua: 18, // °C
   sensor: {
@@ -62,6 +66,7 @@ export const mockHistorial = mockConsumoMensual
 export const mockConfiguracion = {
   limiteDiario: 200,
   personas: 3,
+  costoPorLitro: COSTO_POR_LITRO_MOCK,
   notificaciones: true,
   alertaFuga: true,
   umbralFuga: 50, // litros/hora considerado fuga

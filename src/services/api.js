@@ -87,7 +87,16 @@ export const getHistorial = async (page = 1, limit = 10) => {
 /** POST /configuracion – Guarda la configuración del usuario */
 export const postConfiguracion = async (config) => {
   if (USE_MOCK) return mockDelay({ success: true, config });
-  const { data } = await apiClient.post("/configuracion", config);
+
+  const payload = {
+    limite_diario: config.limiteDiario,
+    personas: config.personas,
+    notificaciones: config.notificaciones,
+    alerta_fuga: config.alertaFuga,
+    costo_por_litro: config.costoPorLitro,
+  };
+
+  const { data } = await apiClient.post("/configuracion", payload);
   return data;
 };
 

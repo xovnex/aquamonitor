@@ -3,18 +3,19 @@
 // ============================================================
 import { useState } from "react";
 import {
-  Settings,
   Save,
   Users,
   Gauge,
   Bell,
-  Droplets,
   Wifi,
   CheckCircle,
+  Coins,
 } from "lucide-react";
 import { useConfig } from "../hooks/useWaterData";
 import { postConfiguracion } from "../services/api";
 import Header from "../components/layout/Header";
+
+const formatSoles = (n) => `S/ ${Number(n).toFixed(2)}`;
 
 export default function ConfiguracionPage() {
   const { config, updateConfig } = useConfig();
@@ -36,7 +37,8 @@ export default function ConfiguracionPage() {
     }
   };
 
-  const consumoSugerido = form.personas * 100; // 100 L/persona es referencia OMS
+  const consumoSugerido = form.personas * 100;
+  const costoEjemploDia = consumoSugerido * (form.costoPorLitro ?? 0.005);
 
   return (
     <div className="flex-1 flex flex-col overflow-auto">
@@ -142,6 +144,112 @@ export default function ConfiguracionPage() {
                 {consumoSugerido} L/día
               </span>{" "}
               (100 L por persona).
+            </p>
+          </div>
+        </div>
+
+        {/* Tarifa del agua */}
+        <div className="glass-card p-6 space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Coins size={16} className="text-purple-400" />
+            <h3 className="text-sm font-semibold text-white/80">
+              Tarifa del agua (Perú)
+            </h3>
+          </div>
+
+          <div>
+            <label className="stat-label block mb-2">
+              Costo por litro (soles)
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-bold text-white/50">S/</span>
+              <input
+                type="number"
+                min="0"
+                max="0.05"
+                step="0.001"
+                value={form.costoPorLitro ?? 0.005}
+                onChange={(e) =>
+                  handleChange(
+                    "costoPorLitro",
+                    Math.max(0, Number(e.target.value) || 0),
+                  )
+                }
+                className="flex-1 px-4 py-3 rounded-xl font-mono text-aqua-400 text-lg outline-none"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              />
+              <span className="text-xs text-white/35 whitespace-nowrap">
+                / litro
+              </span>
+            </div>
+          </div>
+
+          <input
+            type="range"
+            min="0.001"
+            max="0.02"
+            step="0.001"
+            value={form.costoPorLitro ?? 0.005}
+            onChange={(e) =>
+              handleChange("costoPorLitro", Number(e.target.value))
+            }
+            className="w-full h-2 rounded-full outline-none cursor-pointer"
+            style={{ accentColor: "#a78bfa" }}
+          />
+          <div className="flex justify-between text-xs text-white/25 font-mono">
+            <span>S/ 0.001</span>
+            <span>S/ 0.020</span>
+          </div>
+
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { label: "Referencia Perú", value: 0.005 },
+              { label: "SEDAPAL bajo", value: 0.004 },
+              { label: "SEDAPAL alto", value: 0.006 },
+            ].map(({ label, value }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => handleChange("costoPorLitro", value)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  background:
+                    form.costoPorLitro === value
+                      ? "rgba(167,139,250,0.15)"
+                      : "rgba(255,255,255,0.05)",
+                  color:
+                    form.costoPorLitro === value
+                      ? "#c4b5fd"
+                      : "rgba(255,255,255,0.45)",
+                  border: `1px solid ${form.costoPorLitro === value ? "rgba(167,139,250,0.3)" : "rgba(255,255,255,0.08)"}`,
+                }}
+              >
+                {label} ({value})
+              </button>
+            ))}
+          </div>
+
+          <div
+            className="px-4 py-3 rounded-xl text-xs"
+            style={{
+              background: "rgba(167,139,250,0.06)",
+              border: "1px solid rgba(167,139,250,0.12)",
+            }}
+          >
+            <p className="text-purple-300 font-semibold mb-0.5">
+              💰 Vista previa
+            </p>
+            <p className="text-white/40">
+              Si consumieras{" "}
+              <span className="text-white/60 font-mono">{consumoSugerido} L</span>{" "}
+              al día pagarías aprox.{" "}
+              <span className="text-white/60 font-mono">
+                {formatSoles(costoEjemploDia)}
+              </span>
+              .
             </p>
           </div>
         </div>

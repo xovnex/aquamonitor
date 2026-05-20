@@ -6,7 +6,7 @@ import { useWaterData } from "../hooks/useWaterData";
 import { useState } from "react";
 import Header from "../components/layout/Header";
 import StatCard from "../components/cards/StatCard";
-import WaterGauge from "../components/cards/WaterGauge";
+import CostoCard from "../components/cards/CostoCard";
 import AlertBanner from "../components/cards/AlertBanner";
 import ImpactoAmbiental from "../components/cards/ImpactoAmbiental";
 import GraficaDiaria from "../components/charts/GraficaDiaria";
@@ -15,8 +15,10 @@ import GraficaCircular from "../components/charts/GraficaCircular";
 import GraficaMensual from "../components/charts/GraficaMensual";
 import AnalisisIA from "../components/cards/AnalisisIA";
 
+const formatSoles = (n) => `S/ ${Number(n ?? 0).toFixed(2)}`;
+
 export default function DashboardPage() {
-  const { data, loading, error, metrics, lastUpdate, refetch } = useWaterData();
+  const { data, loading, metrics, lastUpdate, refetch } = useWaterData();
   const { hoy, semanal, mensual } = data;
   const [alertHidden, setAlertHidden] = useState(false);
 
@@ -29,9 +31,15 @@ export default function DashboardPage() {
         : "ok";
 
   const alertMessages = {
-    ok: `Llevas ${Number(hoy?.litros ?? 0).toFixed(2)} L de ${hoy?.limite ?? 200} L disponibles. ¡Vas excelente!`,
-    warning: `Ya consumiste el ${metrics?.porcentaje ?? 0}% de tu límite diario. Ve despacio.`,
-    exceeded: `Superaste tu límite por ${Number((hoy?.litros ?? 0) - (hoy?.limite ?? 200)).toFixed(2)} L. Reduce el consumo.`,
+    ok: `Llevas ${Number(hoy?.litros ?? 0).toFixed(2)} L (${formatSoles(metrics?.costoHoy)}). ¡Vas bien!`,
+    warning: `Ya consumiste el ${metrics?.porcentaje ?? 0}% de tu límite. Gasto hoy: ${formatSoles(metrics?.costoHoy)}.`,
+    exceeded: `Superaste tu límite. Gasto extra aprox.: ${formatSoles(
+      Math.max(
+        0,
+        ((hoy?.litros ?? 0) - (hoy?.limite ?? 200)) *
+          (metrics?.costoPorLitro ?? 0.005),
+      ),
+    )}.`,
     leak: "Flujo constante detectado. Verifica tus cañerías.",
   };
 
@@ -58,7 +66,6 @@ export default function DashboardPage() {
       />
 
       <div className="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
-        {/* Alertas */}
         <AlertBanner
           type={alertType}
           message={alertMessages[alertType]}
@@ -66,7 +73,6 @@ export default function DashboardPage() {
           onDismiss={() => setAlertHidden(true)}
         />
 
-        {/* KPIs superiores */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="Consumo hoy"
@@ -115,10 +121,10 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Fila intermedia: Gauge + Circular + Impacto */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <WaterGauge
-            porcentaje={metrics?.porcentaje ?? 0}
+          <CostoCard
+            costoHoy={metrics?.costoHoy ?? 0}
+            costoPorLitro={metrics?.costoPorLitro ?? 0.005}
             litros={hoy?.litros ?? 0}
             limite={hoy?.limite ?? 200}
             excedido={metrics?.excedido}
@@ -130,19 +136,15 @@ export default function DashboardPage() {
           <ImpactoAmbiental ahorro={metrics?.ahorro ?? 0} />
         </div>
 
-        {/* Gráfica diaria */}
         <GraficaDiaria limite={hoy?.limite ?? 200} />
 
-        {/* Gráficas semanal + mensual */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <GraficaSemanal data={semanal} />
           <GraficaMensual data={mensual} />
         </div>
 
-        {/* Análisis IA */}
         <AnalisisIA />
 
-        {/* Resumen del día */}
         <div className="glass-card p-4">
           <div className="flex items-center gap-3 flex-wrap">
             <Activity size={14} className="text-aqua-400" />
@@ -157,6 +159,16 @@ export default function DashboardPage() {
                   color: metrics?.excedido ? "#f87171" : "#48d7ff",
                 },
                 {
+                  label: "Costo hoy",
+                  value: formatSoles(metrics?.costoHoy),
+                  color: "#c4b5fd",
+                },
+                {
+                  label: "Tarifa",
+                  value: `${metrics?.costoPorLitro ?? 0.005} S/L`,
+                  color: "rgba(255,255,255,0.7)",
+                },
+                {
                   label: "Límite",
                   value: `${hoy?.limite ?? 200} L`,
                   color: "rgba(255,255,255,0.7)",
@@ -167,14 +179,9 @@ export default function DashboardPage() {
                   color: "#34d399",
                 },
                 {
-                  label: "Por persona",
-                  value: `${Number(metrics?.porPersona ?? 0).toFixed(2)} L`,
-                  color: "rgba(255,255,255,0.7)",
-                },
-                {
-                  label: "Duchas ahorradas",
-                  value: `${metrics?.duchasAhorradas ?? 0}`,
-                  color: "#a78bfa",
+                  label: "Ahorro en soles",
+                  value: formatSoles(metrics?.ahorroSoles),
+                  color: "#34d399",
                 },
               ].map(({ label, value, color }) => (
                 <div key={label} className="text-center">
