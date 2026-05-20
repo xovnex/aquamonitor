@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Calendar, TrendingUp, TrendingDown, Filter } from "lucide-react";
 import { useWaterData } from "../hooks/useWaterData";
 import Header from "../components/layout/Header";
+import { formatLitros } from "../utils/format";
 
 const ESTADO_CONFIG = {
   normal: { label: "Normal", badge: "badge-ok" },
@@ -23,7 +24,7 @@ export default function HistorialPage() {
 
   const totalLitros = historial.reduce((acc, h) => acc + h.litros, 0);
   const promedioDiario = historial.length
-    ? Math.round(totalLitros / historial.length)
+    ? Number((totalLitros / historial.length).toFixed(2))
     : 0;
   const diasExcedidos = historial.filter((h) => h.estado === "excedido").length;
 
@@ -42,12 +43,12 @@ export default function HistorialPage() {
           {[
             {
               label: "Total acumulado",
-              value: `${totalLitros} L`,
+              value: formatLitros(totalLitros),
               color: "#1eb8f0",
             },
             {
               label: "Promedio diario",
-              value: `${promedioDiario} L`,
+              value: formatLitros(promedioDiario),
               color: "#10b981",
             },
             {
@@ -153,7 +154,7 @@ export default function HistorialPage() {
                                   : "#48d7ff",
                             }}
                           >
-                            {item.litros} L
+                            {formatLitros(item.litros)}
                           </span>
                           {/* Mini progreso */}
                           <div
@@ -185,7 +186,7 @@ export default function HistorialPage() {
                                 className="text-emerald-400"
                               />
                               <span className="text-sm font-mono text-emerald-400">
-                                {item.ahorro} L
+                                {formatLitros(item.ahorro)}
                               </span>
                             </>
                           ) : (

@@ -72,9 +72,9 @@ export const mockConfiguracion = {
   umbralFuga: 50, // litros/hora considerado fuga
 };
 
-/** Equivalencias de ahorro ambiental */
+/** Equivalencias de ahorro ambiental (referencias realistas) */
 export const EQUIVALENCIAS = {
-  duchaPorLitros: 60, // 1 ducha ≈ 60 litros
-  plantaPorLitros: 1, // 1 litro riega 1 planta mediana
-  botellaPorLitros: 0.5, // 1 botella = 0.5 litros
+  duchaPorLitros: 40, // ducha media ~8 min, ~5 L/min
+  plantaPorLitros: 5, // litros para regar una planta mediana
+  botellaLitros: 0.5, // tamaño de cada botella (500 ml)
 };

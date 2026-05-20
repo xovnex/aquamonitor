@@ -2,17 +2,19 @@
 // ImpactoAmbiental.jsx – Impacto ambiental del ahorro de agua
 // ============================================================
 import { Leaf, ShowerHead, Droplets } from "lucide-react";
+import { EQUIVALENCIAS } from "../../utils/mockData";
 
-const EQUIVALENCIAS = {
-  duchaPorLitros: 60,
-  plantasPorLitros: 5,
-  botellaPorLitros: 0.5,
-};
+const { duchaPorLitros, plantaPorLitros, botellaLitros } = EQUIVALENCIAS;
+
+const botellaLabel =
+  botellaLitros >= 1
+    ? `${botellaLitros} L`
+    : `${Math.round(botellaLitros * 1000)} ml`;
 
 export default function ImpactoAmbiental({ ahorro = 0 }) {
-  const duchas = Math.floor(ahorro / EQUIVALENCIAS.duchaPorLitros);
-  const plantas = Math.floor(ahorro / EQUIVALENCIAS.plantasPorLitros);
-  const botellas = Math.floor(ahorro / EQUIVALENCIAS.botellaPorLitros);
+  const duchas = Math.floor(ahorro / duchaPorLitros);
+  const plantas = Math.floor(ahorro / plantaPorLitros);
+  const botellas = Math.floor(ahorro / botellaLitros);
 
   const items = [
     {
@@ -20,21 +22,24 @@ export default function ImpactoAmbiental({ ahorro = 0 }) {
       label: "Duchas ahorradas",
       value: duchas,
       color: "#1eb8f0",
-      unit: "duchas",
+      unit: duchas === 1 ? "ducha" : "duchas",
+      ref: `≈ ${duchaPorLitros} L por ducha`,
     },
     {
       Icon: Leaf,
       label: "Plantas regadas",
       value: plantas,
       color: "#10b981",
-      unit: "plantas",
+      unit: plantas === 1 ? "planta" : "plantas",
+      ref: `≈ ${plantaPorLitros} L por planta`,
     },
     {
       Icon: Droplets,
       label: "Botellas equivalentes",
       value: botellas,
       color: "#8b5cf6",
-      unit: "botellas",
+      unit: `botellas de ${botellaLabel}`,
+      ref: `Cada botella = ${botellaLabel}`,
     },
   ];
 
@@ -63,7 +68,7 @@ export default function ImpactoAmbiental({ ahorro = 0 }) {
             </p>
           </div>
           <div className="space-y-3">
-            {items.map(({ Icon, label, value, color, unit }) => (
+            {items.map(({ Icon, label, value, color, unit, ref }) => (
               <div key={label} className="flex items-center gap-3">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -82,10 +87,10 @@ export default function ImpactoAmbiental({ ahorro = 0 }) {
                       {unit}
                     </span>
                   </p>
+                  <p className="text-[10px] text-white/25 mt-0.5">{ref}</p>
                 </div>
-                {/* Mini bar */}
                 <div
-                  className="w-16 h-1.5 rounded-full"
+                  className="w-16 h-1.5 rounded-full flex-shrink-0"
                   style={{ background: "rgba(255,255,255,0.06)" }}
                 >
                   <div

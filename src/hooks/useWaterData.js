@@ -8,6 +8,7 @@ import {
   getConsumoMensual,
   getHistorial,
 } from "../services/api";
+import { EQUIVALENCIAS } from "../utils/mockData";
 
 const DEFAULT_COSTO_POR_LITRO = 0.005;
 
@@ -85,7 +86,9 @@ export const useWaterData = () => {
           ahorro: Math.max(0, limite - litros),
           porPersona: Math.round(litros / (data.hoy.personas || 1)),
           fujaDetectada: data.hoy.flujoActual > 10,
-          duchasAhorradas: Math.floor(Math.max(0, limite - litros) / 60),
+          duchasAhorradas: Math.floor(
+          Math.max(0, limite - litros) / EQUIVALENCIAS.duchaPorLitros,
+        ),
           costoPorLitro,
           costoHoy,
           ahorroSoles: Number(
