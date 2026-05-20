@@ -2,20 +2,26 @@
 // HistorialPage.jsx – Historial de consumos diarios
 // ============================================================
 import { useState } from "react";
-import { Calendar, TrendingUp, TrendingDown, Filter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Calendar, TrendingUp, TrendingDown, Filter, Coins } from "lucide-react";
 import { useWaterData } from "../hooks/useWaterData";
 import Header from "../components/layout/Header";
-import { formatLitros } from "../utils/format";
+import { formatLitros, formatSoles } from "../utils/format";
 
 const ESTADO_CONFIG = {
   normal: { label: "Normal", badge: "badge-ok" },
   excedido: { label: "Excedido", badge: "badge-alert" },
 };
 
+const costoDelDia = (item, tarifa) =>
+  item.costo ?? Number((item.litros * tarifa).toFixed(2));
+
 export default function HistorialPage() {
   const { data, loading, lastUpdate, refetch } = useWaterData();
-  const { historial } = data;
+  const { historial, costoPorLitroHistorial } = data;
   const [filtro, setFiltro] = useState("todos");
+
+  const tarifa = costoPorLitroHistorial ?? 0.005;
 
   const filtrados =
     filtro === "todos"
@@ -23,8 +29,15 @@ export default function HistorialPage() {
       : historial.filter((h) => h.estado === filtro);
 
   const totalLitros = historial.reduce((acc, h) => acc + h.litros, 0);
+  const totalCosto = historial.reduce(
+    (acc, h) => acc + costoDelDia(h, tarifa),
+    0,
+  );
   const promedioDiario = historial.length
     ? Number((totalLitros / historial.length).toFixed(2))
+    : 0;
+  const promedioCosto = historial.length
+    ? Number((totalCosto / historial.length).toFixed(2))
     : 0;
   const diasExcedidos = historial.filter((h) => h.estado === "excedido").length;
 
@@ -37,9 +50,8 @@ export default function HistorialPage() {
         loading={loading}
       />
 
-      <div className="flex-1 p-6 max-w-5xl mx-auto w-full space-y-5">
-        {/* Resumen */}
-        <div className="grid grid-cols-3 gap-4">
+      <div className="flex-1 p-6 max-w-6xl mx-auto w-full space-y-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
               label: "Total acumulado",
@@ -47,8 +59,14 @@ export default function HistorialPage() {
               color: "#1eb8f0",
             },
             {
+              label: "Costo total",
+              value: formatSoles(totalCosto),
+              color: "#a78bfa",
+            },
+            {
               label: "Promedio diario",
               value: formatLitros(promedioDiario),
+              sub: formatSoles(promedioCosto),
               color: "#10b981",
             },
             {
@@ -56,17 +74,39 @@ export default function HistorialPage() {
               value: diasExcedidos,
               color: diasExcedidos > 5 ? "#ef4444" : "#fbbf24",
             },
-          ].map(({ label, value, color }) => (
+          ].map(({ label, value, sub, color }) => (
             <div key={label} className="glass-card p-4 text-center">
               <p className="stat-label mb-1">{label}</p>
               <p className="text-xl font-bold font-mono" style={{ color }}>
                 {value}
               </p>
+              {sub && (
+                <p className="text-xs font-mono text-white/35 mt-1">{sub}</p>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Filtros */}
+        <div
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs flex-wrap"
+          style={{
+            background: "rgba(167,139,250,0.06)",
+            border: "1px solid rgba(167,139,250,0.12)",
+          }}
+        >
+          <Coins size={14} className="text-purple-300 flex-shrink-0" />
+          <span className="text-white/50">
+            Tarifa actual:{" "}
+            <span className="font-mono text-purple-200">{tarifa} S/L</span>
+          </span>
+          <Link
+            to="/configuracion"
+            className="ml-auto text-purple-300 hover:text-purple-200 transition-colors"
+          >
+            Cambiar en Configuración →
+          </Link>
+        </div>
+
         <div className="flex items-center gap-3 flex-wrap">
           <Filter size={14} className="text-white/40" />
           {["todos", "normal", "excedido"].map((f) => (
@@ -91,7 +131,6 @@ export default function HistorialPage() {
           </span>
         </div>
 
-        {/* Tabla */}
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -99,13 +138,19 @@ export default function HistorialPage() {
                 <tr
                   style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                 >
-                  {["#", "Fecha", "Consumo", "Límite", "Ahorro", "Estado"].map(
-                    (h) => (
-                      <th key={h} className="px-5 py-3.5 text-left stat-label">
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {[
+                    "#",
+                    "Fecha",
+                    "Consumo",
+                    "Límite",
+                    "Ahorro",
+                    "Costo del día",
+                    "Estado",
+                  ].map((h) => (
+                    <th key={h} className="px-5 py-3.5 text-left stat-label">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -113,6 +158,8 @@ export default function HistorialPage() {
                   const { badge, label } =
                     ESTADO_CONFIG[item.estado] || ESTADO_CONFIG.normal;
                   const pct = Math.round((item.litros / item.limite) * 100);
+                  const costo = costoDelDia(item, tarifa);
+
                   return (
                     <tr
                       key={item.id}
@@ -156,7 +203,6 @@ export default function HistorialPage() {
                           >
                             {formatLitros(item.litros)}
                           </span>
-                          {/* Mini progreso */}
                           <div
                             className="w-16 h-1.5 rounded-full hidden sm:block"
                             style={{ background: "rgba(255,255,255,0.06)" }}
@@ -198,6 +244,11 @@ export default function HistorialPage() {
                             </>
                           )}
                         </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="text-sm font-bold font-mono text-purple-300">
+                          {formatSoles(costo)}
+                        </span>
                       </td>
                       <td className="px-5 py-3.5">
                         <span className={badge}>{label}</span>

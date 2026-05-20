@@ -59,7 +59,8 @@ export const mockHistorial = mockConsumoMensual
     id: idx + 1,
     ...item,
     estado: item.litros > item.limite ? "excedido" : "normal",
-    ahorro: Math.max(0, item.limite - item.litros),
+    ahorro: Number(Math.max(0, item.limite - item.litros).toFixed(2)),
+    costo: Number((item.litros * COSTO_POR_LITRO_MOCK).toFixed(2)),
   }));
 
 /** Configuración del usuario */

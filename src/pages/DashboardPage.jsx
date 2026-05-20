@@ -1,7 +1,7 @@
 // ============================================================
 // DashboardPage.jsx – Página principal del dashboard
 // ============================================================
-import { Droplets, Gauge, TrendingDown, Users, Activity } from "lucide-react";
+import { Droplets, Gauge, TrendingDown, Users } from "lucide-react";
 import { useWaterData } from "../hooks/useWaterData";
 import { useState } from "react";
 import Header from "../components/layout/Header";
@@ -144,59 +144,6 @@ export default function DashboardPage() {
         </div>
 
         <AnalisisIA />
-
-        <div className="glass-card p-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Activity size={14} className="text-aqua-400" />
-            <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">
-              Resumen del día
-            </span>
-            <div className="flex items-center gap-4 ml-auto flex-wrap">
-              {[
-                {
-                  label: "Total hoy",
-                  value: `${Number(hoy?.litros ?? 0).toFixed(2)} L`,
-                  color: metrics?.excedido ? "#f87171" : "#48d7ff",
-                },
-                {
-                  label: "Costo hoy",
-                  value: formatSoles(metrics?.costoHoy),
-                  color: "#c4b5fd",
-                },
-                {
-                  label: "Tarifa",
-                  value: `${metrics?.costoPorLitro ?? 0.005} S/L`,
-                  color: "rgba(255,255,255,0.7)",
-                },
-                {
-                  label: "Límite",
-                  value: `${hoy?.limite ?? 200} L`,
-                  color: "rgba(255,255,255,0.7)",
-                },
-                {
-                  label: "Ahorro",
-                  value: `${Number(metrics?.ahorro ?? 0).toFixed(2)} L`,
-                  color: "#34d399",
-                },
-                {
-                  label: "Ahorro en soles",
-                  value: formatSoles(metrics?.ahorroSoles),
-                  color: "#34d399",
-                },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="text-center">
-                  <p className="stat-label text-[10px]">{label}</p>
-                  <p
-                    className="text-xs font-mono font-semibold"
-                    style={{ color: color || "rgba(255,255,255,0.7)" }}
-                  >
-                    {value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

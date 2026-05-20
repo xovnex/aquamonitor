@@ -34,6 +34,7 @@ export const useWaterData = () => {
     mensual: [],
     historial: [],
     historialTotal: 0,
+    costoPorLitroHistorial: DEFAULT_COSTO_POR_LITRO,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,6 +56,10 @@ export const useWaterData = () => {
         mensual,
         historial: historialRes.items,
         historialTotal: historialRes.total,
+        costoPorLitroHistorial:
+          historialRes.costo_por_litro ??
+          historialRes.costoPorLitro ??
+          resolveCostoPorLitro(hoy),
       });
       setLastUpdate(new Date());
     } catch (err) {

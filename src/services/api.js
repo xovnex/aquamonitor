@@ -73,9 +73,14 @@ export const getConsumoMensual = async () => {
 export const getHistorial = async (page = 1, limit = 10) => {
   if (USE_MOCK) {
     const start = (page - 1) * limit;
+    const tarifa = mockConfiguracion.costoPorLitro ?? 0.005;
     return mockDelay({
-      items: mockHistorial.slice(start, start + limit),
+      items: mockHistorial.slice(start, start + limit).map((item) => ({
+        ...item,
+        costo: Number((item.litros * tarifa).toFixed(2)),
+      })),
       total: mockHistorial.length,
+      costo_por_litro: tarifa,
     });
   }
   const { data } = await apiClient.get("/historial", {
