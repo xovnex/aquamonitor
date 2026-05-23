@@ -92,8 +92,8 @@ export const useWaterData = () => {
           porPersona: Math.round(litros / (data.hoy.personas || 1)),
           fujaDetectada: data.hoy.flujoActual > 10,
           duchasAhorradas: Math.floor(
-          Math.max(0, limite - litros) / EQUIVALENCIAS.duchaPorLitros,
-        ),
+            Math.max(0, limite - litros) / EQUIVALENCIAS.duchaPorLitros,
+          ),
           costoPorLitro,
           costoHoy,
           ahorroSoles: Number(

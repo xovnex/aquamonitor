@@ -206,9 +206,21 @@ export default function ConfiguracionPage() {
 
           <div className="flex gap-2 flex-wrap">
             {[
-              { label: "Referencia Perú", value: 0.005 },
-              { label: "SEDAPAL bajo", value: 0.004 },
-              { label: "SEDAPAL alto", value: 0.006 },
+              {
+                label: "SEDAPAL básico",
+                value: 0.0022,
+                desc: "Tramo 1 (referencia)",
+              },
+              {
+                label: "SEDAPAL medio",
+                value: 0.00236,
+                desc: "Tramo 2 (referencia)",
+              },
+              {
+                label: "SEDAPAL alto",
+                value: 0.00322,
+                desc: "Tramo 3 (referencia)",
+              },
             ].map(({ label, value }) => (
               <button
                 key={label}

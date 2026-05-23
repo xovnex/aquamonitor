@@ -14,8 +14,7 @@ import GraficaSemanal from "../components/charts/GraficaSemanal";
 import GraficaCircular from "../components/charts/GraficaCircular";
 import GraficaMensual from "../components/charts/GraficaMensual";
 import AnalisisIA from "../components/cards/AnalisisIA";
-
-const formatSoles = (n) => `S/ ${Number(n ?? 0).toFixed(2)}`;
+import { formatSoles } from "../utils/format";
 
 export default function DashboardPage() {
   const { data, loading, metrics, lastUpdate, refetch } = useWaterData();
