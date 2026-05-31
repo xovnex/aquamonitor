@@ -15,22 +15,13 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import { isSensorOnline, segundosSinDatos } from "../../utils/sensorStatus";
+import { isSensorOnline, minutosSinDatos, formatTiempoSinDatos } from "../../utils/sensorStatus";
 
 const NAV_ITEMS = [
   { path: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { path: "/historial", label: "Historial", Icon: History },
   { path: "/configuracion", label: "Configuración", Icon: Settings },
 ];
-
-function formatTiempoSinDatos(segundos) {
-  if (segundos == null) return "Sin lecturas registradas";
-  if (segundos < 60) return `Sin datos hace ${segundos}s`;
-  const min = Math.floor(segundos / 60);
-  if (min < 60) return `Sin datos hace ${min} min`;
-  const horas = Math.floor(min / 60);
-  return `Sin datos hace ${horas}h`;
-}
 
 function SensorStatus() {
   const [enLinea, setEnLinea] = useState(false);
@@ -54,7 +45,7 @@ function SensorStatus() {
           setDetalle(
             online
               ? "Enviando datos al servidor"
-              : formatTiempoSinDatos(segundosSinDatos(d)),
+              : formatTiempoSinDatos(minutosSinDatos(d)),
           );
         })
         .catch(() => {
