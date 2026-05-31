@@ -9,6 +9,7 @@ import {
   getHistorial,
 } from "../services/api";
 import { EQUIVALENCIAS } from "../utils/mockData";
+import { isSensorOnline } from "../utils/sensorStatus";
 
 const DEFAULT_COSTO_POR_LITRO = 0.005;
 
@@ -90,7 +91,9 @@ export const useWaterData = () => {
           excedido: litros > limite,
           ahorro: Math.max(0, limite - litros),
           porPersona: Math.round(litros / (data.hoy.personas || 1)),
-          fujaDetectada: data.hoy.flujoActual > 10,
+          fujaDetectada:
+            isSensorOnline(data.hoy) && (data.hoy.flujoActual ?? 0) > 10,
+          sensorEnLinea: isSensorOnline(data.hoy),
           duchasAhorradas: Math.floor(
             Math.max(0, limite - litros) / EQUIVALENCIAS.duchaPorLitros,
           ),

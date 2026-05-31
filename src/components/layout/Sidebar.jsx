@@ -11,9 +11,11 @@ import {
   LogOut,
   Droplets,
   Wifi,
+  WifiOff,
   ChevronRight,
   X,
 } from "lucide-react";
+import { isSensorOnline, segundosSinDatos } from "../../utils/sensorStatus";
 
 const NAV_ITEMS = [
   { path: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
@@ -21,9 +23,18 @@ const NAV_ITEMS = [
   { path: "/configuracion", label: "Configuración", Icon: Settings },
 ];
 
-// ── Componente de estado del sensor ──
+function formatTiempoSinDatos(segundos) {
+  if (segundos == null) return "Sin lecturas registradas";
+  if (segundos < 60) return `Sin datos hace ${segundos}s`;
+  const min = Math.floor(segundos / 60);
+  if (min < 60) return `Sin datos hace ${min} min`;
+  const horas = Math.floor(min / 60);
+  return `Sin datos hace ${horas}h`;
+}
+
 function SensorStatus() {
   const [enLinea, setEnLinea] = useState(false);
+  const [detalle, setDetalle] = useState("Comprobando sensor...");
 
   useEffect(() => {
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -38,17 +49,18 @@ function SensorStatus() {
           return r.json();
         })
         .then((d) => {
-          // Verde solo si hay agua fluyendo en este momento (flujoActual > 0)
-          // y el dato es reciente (dentro de los últimos 30 segundos)
-          if (d?.sensor?.ultimaLectura && d?.flujoActual > 0) {
-            const ultima = new Date(d.sensor.ultimaLectura);
-            const diffSeg = (Date.now() - ultima.getTime()) / 1000;
-            setEnLinea(diffSeg < 30);
-          } else {
-            setEnLinea(false);
-          }
+          const online = isSensorOnline(d);
+          setEnLinea(online);
+          setDetalle(
+            online
+              ? "Enviando datos al servidor"
+              : formatTiempoSinDatos(segundosSinDatos(d)),
+          );
         })
-        .catch(() => setEnLinea(false));
+        .catch(() => {
+          setEnLinea(false);
+          setDetalle("No se pudo contactar la API");
+        });
     };
 
     verificar();
@@ -73,12 +85,16 @@ function SensorStatus() {
             animation: enLinea ? "pulseDot 1.5s ease-in-out infinite" : "none",
           }}
         />
-        <Wifi size={12} color={enLinea ? "#34d399" : "#f87171"} />
+        {enLinea ? (
+          <Wifi size={12} color="#34d399" />
+        ) : (
+          <WifiOff size={12} color="#f87171" />
+        )}
         <span
           className="text-xs font-medium"
           style={{ color: enLinea ? "#34d399" : "#f87171" }}
         >
-          {enLinea ? "Sensor en línea" : "Sensor apagado"}
+          {enLinea ? "Sensor en línea" : "Sensor desconectado"}
         </span>
       </div>
       <p
@@ -86,6 +102,9 @@ function SensorStatus() {
         style={{ color: "rgba(255,255,255,0.3)" }}
       >
         ESP32-001
+      </p>
+      <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
+        {detalle}
       </p>
     </div>
   );
@@ -110,7 +129,6 @@ export default function Sidebar({ onClose }) {
         borderRight: "1px solid rgba(30,184,240,0.1)",
       }}
     >
-      {/* ── Header del sidebar ── */}
       <div
         className="flex items-center justify-between px-5 py-5"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
@@ -135,7 +153,6 @@ export default function Sidebar({ onClose }) {
           </div>
         </div>
 
-        {/* Botón X – solo visible en móvil */}
         <button
           onClick={onClose}
           className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
@@ -149,10 +166,8 @@ export default function Sidebar({ onClose }) {
         </button>
       </div>
 
-      {/* ── Estado del sensor (dinámico) ── */}
       <SensorStatus />
 
-      {/* ── Navegación ── */}
       <nav className="flex-1 px-3 py-1 space-y-1 overflow-y-auto">
         {NAV_ITEMS.map(({ path, label, Icon }) => {
           const isActive = location.pathname === path;
@@ -181,7 +196,6 @@ export default function Sidebar({ onClose }) {
         })}
       </nav>
 
-      {/* ── Footer: usuario + cerrar sesión ── */}
       <div
         className="px-3 py-4"
         style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}

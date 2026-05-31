@@ -19,13 +19,13 @@ export const mockConsumoHoy = {
   personas: 3,
   costoPorLitro: COSTO_POR_LITRO_MOCK,
   costoEstimado: Number((142 * COSTO_POR_LITRO_MOCK).toFixed(2)),
-  flujoActual: 0.8, // litros/min – detectado por sensor de flujo
-  temperaturaAgua: 18, // °C
+  flujoActual: 0,
+  temperaturaAgua: 18,
   sensor: {
     id: "ESP32-001",
-    estado: "online",
-    bateria: 87,
-    ultimaActualizacion: new Date().toISOString(),
+    enLinea: false,
+    ultimaLectura: null,
+    segundosSinDatos: null,
   },
 };
 
